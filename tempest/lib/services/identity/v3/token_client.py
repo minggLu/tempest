@@ -122,7 +122,7 @@ class V3TokenClient(rest_client.RestClient):
         return rest_client.ResponseBody(resp, body)
 
     def request(self, method, url, extra_headers=False, headers=None,
-                body=None):
+                body=None, saml=None):
         """A simple HTTP request interface."""
         if headers is None:
             # Always accept 'json', for xml token client too.
@@ -143,11 +143,18 @@ class V3TokenClient(rest_client.RestClient):
         if resp.status in [401, 403]:
             resp_body = json.loads(resp_body)
             raise exceptions.Unauthorized(resp_body['error']['message'])
-        elif resp.status not in [200, 201, 204]:
+        elif resp.status == 302 and saml:
+            pass 
+        elif resp.status not in [200, 201, 204] and not saml:
             raise exceptions.IdentityError(
                 'Unexpected status code {0}'.format(resp.status))
 
-        return resp, json.loads(resp_body)
+        #import pdb; pdb.set_trace()
+        print resp.status, saml
+        if saml:
+            return resp, resp_body
+        else:    
+            return resp, json.loads(resp_body)
 
     def get_token(self, **kwargs):
         """Returns (token id, token data) for supplied credentials"""
