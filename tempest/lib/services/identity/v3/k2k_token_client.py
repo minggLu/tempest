@@ -100,7 +100,7 @@ class K2KTokenClient(token_client.V3TokenClient):
         """Send assertion to a Keystone SP and get token."""
 
         ecp_url = 'http://' + sp_ip + ':5000/Shibboleth.sso/SAML2/ECP'
-        auth_url = 'http://' + sp_ip + '/v3/OS-FEDERATION/identity_providers/keystone-idp/protocols/saml2/auth'
+        auth_url = 'http://' + sp_ip + ':35357/v3/OS-FEDERATION/identity_providers/keystone-idp/protocols/saml2/auth'
         redirect_url = 'http://' + sp_ip + ':5000/'
         sp_auth_url = 'http://' + sp_ip + ':5000/v3/auth/tokens'
         r, b = self.post(
