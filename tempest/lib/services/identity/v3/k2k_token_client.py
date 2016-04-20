@@ -101,15 +101,18 @@ class K2KTokenClient(token_client.V3TokenClient):
 
         ecp_url = 'http://' + sp_ip + ':5000/Shibboleth.sso/SAML2/ECP'
         auth_url = 'http://' + sp_ip + ':35357/v3/OS-FEDERATION/identity_providers/keystone-idp/protocols/saml2/auth'
-        redirect_url = 'http://' + sp_ip + ':5000/'
         sp_auth_url = 'http://' + sp_ip + ':5000/v3/auth/tokens'
         r, b = self.post(
             url=ecp_url,
             headers={'Content-Type': 'application/vnd.paos+xml'},
             body=assertion, saml='saml2')
 
+        cookie = r['set-cookie'].split(';')[0]
+        headers={'Content-Type': 'application/vnd.paos+xml',
+                 'Cookie': cookie}
+        import pdb; pdb.set_trace()
         resp, body = self.get(url=auth_url, saml='saml2',
-            headers={'Content-Type': 'application/vnd.paos+xml'})
+                              headers=headers)
 
         print resp
         print body
