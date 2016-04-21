@@ -76,4 +76,5 @@ class K2KTokensV3Test(base.BaseIdentityV3Test):
         #import pdb; pdb.set_trace()
         unscoped_token_id = k2k_client.get_unscoped_token(sp_ip, assertion)
          
-        #scoped_token = k2k_client.get_scoped_token(unscoped_token_id, sp_project_name, sp_project_domain_id)
+        scoped_token = k2k_client.get_scoped_token(unscoped_token_id, 
+                sp_ip, sp_project_name, sp_project_domain_id)

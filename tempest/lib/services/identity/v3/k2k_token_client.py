@@ -66,6 +66,7 @@ class K2KTokenClient(token_client.V3TokenClient):
             }
         }
 
+        self.body = body
         PATTERN = '/auth/tokens'
         base_url = self.auth_url.split(PATTERN)[0]
 
@@ -93,15 +94,11 @@ class K2KTokenClient(token_client.V3TokenClient):
         #return rest_client.ResponseBody(resp, body)
         return six.text_type(body)
 
-    def _handle_http_302_ecp_redirect(self, response, location, **kwargs):
-        return self.session.get(location, authenticated=False, **kwargs)
-
     def get_unscoped_token(self, sp_ip, assertion):
         """Send assertion to a Keystone SP and get token."""
 
         ecp_url = 'http://' + sp_ip + ':5000/Shibboleth.sso/SAML2/ECP'
         auth_url = 'http://' + sp_ip + ':35357/v3/OS-FEDERATION/identity_providers/keystone-idp/protocols/saml2/auth'
-        sp_auth_url = 'http://' + sp_ip + ':5000/v3/auth/tokens'
         r, b = self.post(
             url=ecp_url,
             headers={'Content-Type': 'application/vnd.paos+xml'},
@@ -110,24 +107,23 @@ class K2KTokenClient(token_client.V3TokenClient):
         cookie = r['set-cookie'].split(';')[0]
         headers={'Content-Type': 'application/vnd.paos+xml',
                  'Cookie': cookie}
-        import pdb; pdb.set_trace()
-        resp, body = self.get(url=auth_url, saml='saml2',
-                              headers=headers)
+        resp, body = self.get(url=auth_url, headers=headers)
 
         print resp
         print body
 
-        fed_token_id = resp['X-Subject-Token']
+        fed_token_id = resp['x-subject-token']
         return fed_token_id
 
-    def get_scoped_token(self, _token, project_id):
+    def get_scoped_token(self, _token, sp_ip, project_name, project_domain_id):
         # project_id can be select from the list in the previous step
-        url = 'http://' + self.sp_ip + ':5000/v3/auth/tokens'
+        url = 'http://' + sp_ip + ':5000/v3/auth/tokens'
         headers = {'x-auth-token': _token,
                    'Content-Type': 'application/json'}
-        resp, body = self.auth(url=url, headers=headers, token=_token,
-                      project_id=project_id)
+        resp, body = self.auth(auth_url=url, headers=headers, token=_token,
+                      project_name=project_name,
+                      project_domain_id=project_domain_id)
         self.expected_success(201, resp.status)
-        scoped_token_id = resp['X-Subject-Token']
+        scoped_token_id = resp['x-subject-token']
         #scoped_token_ref = str(body)
         return scoped_token_id
