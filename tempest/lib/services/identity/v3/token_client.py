@@ -144,15 +144,12 @@ class V3TokenClient(rest_client.RestClient):
             resp_body = json.loads(resp_body)
             raise exceptions.Unauthorized(resp_body['error']['message'])
         elif resp.status == 302 and saml:
-            print resp
-            print resp_body
             pass 
         elif resp.status not in [200, 201, 204] and not saml:
             raise exceptions.IdentityError(
                 'Unexpected status code {0}'.format(resp.status))
 
         #import pdb; pdb.set_trace()
-        print resp.status, saml
         if saml:
             return resp, resp_body
         else:    

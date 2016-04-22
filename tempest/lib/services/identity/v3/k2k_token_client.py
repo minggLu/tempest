@@ -109,20 +109,44 @@ class K2KTokenClient(token_client.V3TokenClient):
                  'Cookie': cookie}
         resp, body = self.get(url=auth_url, headers=headers)
 
-        print resp
-        print body
-
         fed_token_id = resp['x-subject-token']
         return fed_token_id
 
-    def get_scoped_token(self, _token, sp_ip, project_name, project_domain_id):
+    def get_scoped_token(self, _token, project_id):
         # project_id can be select from the list in the previous step
-        url = 'http://' + sp_ip + ':5000/v3/auth/tokens'
+        sp_auth_url = "http://128.52.184.143:5000/v3/auth/tokens" 
         headers = {'x-auth-token': _token,
                    'Content-Type': 'application/json'}
-        resp, body = self.auth(auth_url=url, headers=headers, token=_token,
-                      project_name=project_name,
-                      project_domain_id=project_domain_id)
+        # This is a hack, I'm generating json obj and 
+        # and using request() function directly,
+        # but actually we should have an auth() function to handle that
+        # like this following one:
+        #resp, body = self.auth(headers=headers, token=_token,
+        #                      project_name=project_name,
+        #                      project_domain_id=project_domain_id)
+
+        body = {
+            "auth": {
+                "identity": {
+                    "methods": [
+                        "token"
+                    ],
+                    "token": {
+                        "id": _token
+                    }
+                },
+                "scope": {
+                    "project": {
+                        "id": project_id
+                    }
+                }
+            }
+        }
+
+        resp, body = self.post(url=sp_auth_url,
+                               body=json.dumps(body, sort_keys=True),
+                               headers=headers)
+
         self.expected_success(201, resp.status)
         scoped_token_id = resp['x-subject-token']
         #scoped_token_ref = str(body)

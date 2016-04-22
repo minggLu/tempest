@@ -518,7 +518,6 @@ class RestClient(object):
     def _request(self, method, url, headers=None, body=None):
         """A simple HTTP request interface."""
         # Authenticate the request with the auth provider
-        print "in _request, body= ", body
         req_url, req_headers, req_body = self.auth_provider.auth_request(
             method, url, headers, body, self.filters)
 
@@ -554,7 +553,6 @@ class RestClient(object):
         :return: a tuple with the first entry containing the response headers
                  and the second the response body
         """
-        print "in raw_request, body= ", body
         if headers is None:
             headers = self.get_headers()
         return self.http_obj.request(url, method,
@@ -562,7 +560,6 @@ class RestClient(object):
 
     def request(self, method, url, extra_headers=False, headers=None,
                 body=None, saml=None):
-        print "in request, body= ", body
         """Send a HTTP request with keystone auth and using the catalog
 
         This method will send an HTTP request using keystone auth in the

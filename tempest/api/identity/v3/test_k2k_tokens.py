@@ -43,7 +43,6 @@ class K2KTokensV3Test(base.BaseIdentityV3Test):
         sp_project_name = 'admin'
         sp_project_domain_id = 'default'
         sp_ip = '128.52.184.143'
-        #sp_url = "http://128.52.184.143:5000/v3/auth/tokens"
 
         remote_url = "http://128.52.184.143:35357/v3/OS-FEDERATION/identity_providers/keystone-idp/protocols/saml2/auth"
 
@@ -74,7 +73,39 @@ class K2KTokensV3Test(base.BaseIdentityV3Test):
             sp_id=sp_id, token=idp_token)
         
         #import pdb; pdb.set_trace()
-        unscoped_token_id = k2k_client.get_unscoped_token(sp_ip, assertion)
-         
-        scoped_token = k2k_client.get_scoped_token(unscoped_token_id, 
-                sp_ip, sp_project_name, sp_project_domain_id)
+        unscoped_token = k2k_client.get_unscoped_token(sp_ip, assertion)
+        self.unscoped_token = unscoped_token
+        # check if unscoped_token is valid
+        self.assertNotEmpty(unscoped_token)
+        self.assertIsInstance(unscoped_token, six.string_types)
+        now = timeutils.utcnow()
+        expires_at = timeutils.normalize_time(
+            timeutils.parse_isotime(resp['expires_at']))
+        self.assertGreater(resp['expires_at'],
+                           resp['issued_at'])
+        self.assertGreater(expires_at, now)
+        subject_name = resp['user']['name']
+        self.assertEqual(subject_name, username)
+        self.assertEqual(resp['methods'][0], 'password')
+
+    def test_scoped_token(self):
+        sp_auth_url = "http://128.52.184.143:5000/v3/auth/tokens"
+        sp_project_id = '4924d8c639404244930c1d0ceaf3842a'
+
+        sp_client = k2k_token_client.K2KTokenClient(auth_url=sp_auth_url)
+
+        scoped_token = sp_client.get_scoped_token(self.unscoped_token, 
+                sp_project_id)
+
+        # check if scoped_token is valid
+        self.assertNotEmpty(scoped_token)
+        self.assertIsInstance(scoped_token, six.string_types)
+        now = timeutils.utcnow()
+        expires_at = timeutils.normalize_time(
+            timeutils.parse_isotime(resp['expires_at']))
+        self.assertGreater(resp['expires_at'],
+                           resp['issued_at'])
+        self.assertGreater(expires_at, now)
+        subject_name = resp['user']['name']
+        self.assertEqual(subject_name, username)
+        self.assertEqual(resp['methods'][0], 'password')
