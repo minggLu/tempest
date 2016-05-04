@@ -136,7 +136,6 @@ class BaseIdentityV3Test(BaseIdentityTest):
         cls.non_admin_users_client = cls.os.users_v3_client
         cls.non_admin_token = cls.os.token_v3_client
         cls.non_admin_projects_client = cls.os.projects_client
-        #cls.non_admin_k2k = cls.os.k2k_token_client
 
     @classmethod
     def resource_cleanup(cls):
