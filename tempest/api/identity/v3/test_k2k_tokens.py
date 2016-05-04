@@ -23,39 +23,24 @@ from tempest.lib.services.identity.v3 import k2k_token_client
 class K2KTokensV3Test(base.BaseIdentityV3Test):
 
     @test.idempotent_id('6f8e4436-fc96-4282-8122-e41df57197a9')
-    def test_unscoped_token(self):
-
-#        creds = self.os.credentials
-#        user_id = creds.user_id
-#        username = creds.username
-#        password = creds.password
-#        user_domain_id = creds.user_domain_id
-
-        # TODO move to base credential setup
+    def test_get_unscoped_scoped_token(self):
         idp_auth_url = 'http://localhost:5000/v3/auth/tokens'
-        idp_base_url = 'http://localhost:5000/v3'
+        sp_auth_url = "http://128.52.184.143:5000/v3/auth/tokens"
+        sp_project_id = 'f47e162ee69a4631abd7f69b084ab32e'
         username = 'admin'
         password = 'nomoresecrete'
         project_name = 'admin'
         project_domain_id = 'default'
-        user_domain_id = 'default'
         sp_id = 'ansible-sp'
-        sp_project_name = 'admin'
-        sp_project_domain_id = 'default'
         sp_ip = '128.52.184.143'
 
-        remote_url = "http://128.52.184.143:35357/v3/OS-FEDERATION/identity_providers/keystone-idp/protocols/saml2/auth"
-
-        # Get idp (local) auth token for saml2 exchange
         k2k_client = k2k_token_client.K2KTokenClient(auth_url=idp_auth_url)
-        #idp_token, resp = self.non_admin_token.get_token(
         idp_token, resp = k2k_client.get_token(
             username=username,
             password=password,
             project_name=project_name,
             project_domain_id=project_domain_id,
             auth_data=True)
-
         # check if idp_token is valid
         self.assertNotEmpty(idp_token)
         self.assertIsInstance(idp_token, six.string_types)
@@ -69,12 +54,9 @@ class K2KTokensV3Test(base.BaseIdentityV3Test):
         self.assertEqual(subject_name, username)
         self.assertEqual(resp['methods'][0], 'password')
 
-        assertion = k2k_client._get_ecp_assertion(
-            sp_id=sp_id, token=idp_token)
-        
-        #import pdb; pdb.set_trace()
+        assertion = k2k_client._get_ecp_assertion(sp_id=sp_id,
+                                                  token=idp_token)
         unscoped_token = k2k_client.get_unscoped_token(sp_ip, assertion)
-        self.unscoped_token = unscoped_token
         # check if unscoped_token is valid
         self.assertNotEmpty(unscoped_token)
         self.assertIsInstance(unscoped_token, six.string_types)
@@ -88,15 +70,9 @@ class K2KTokensV3Test(base.BaseIdentityV3Test):
         self.assertEqual(subject_name, username)
         self.assertEqual(resp['methods'][0], 'password')
 
-    def test_scoped_token(self):
-        sp_auth_url = "http://128.52.184.143:5000/v3/auth/tokens"
-        sp_project_id = '4924d8c639404244930c1d0ceaf3842a'
-
         sp_client = k2k_token_client.K2KTokenClient(auth_url=sp_auth_url)
-
-        scoped_token = sp_client.get_scoped_token(self.unscoped_token, 
-                sp_project_id)
-
+        scoped_token = sp_client.get_scoped_token(unscoped_token, 
+                                                  sp_project_id)
         # check if scoped_token is valid
         self.assertNotEmpty(scoped_token)
         self.assertIsInstance(scoped_token, six.string_types)

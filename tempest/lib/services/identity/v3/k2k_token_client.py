@@ -82,16 +82,6 @@ class K2KTokenClient(token_client.V3TokenClient):
                                headers=headers, saml='saml2')
 
         self.expected_success(200, resp.status)
-#        if not resp.ok:
-#            msg = ("Error while requesting ECP wrapped assertion: response "
-#                   "exit code: %(status_code)d, reason: %(err)s")
-#            msg = msg % {'status_code': resp.status_code, 'err': resp.reason}
-#            raise exceptions.AuthorizationFailure(msg)
-#
-#        if not resp.text:
-#            raise exceptions.InvalidResponse(resp)
-
-        #return rest_client.ResponseBody(resp, body)
         return six.text_type(body)
 
     def get_unscoped_token(self, sp_ip, assertion):
@@ -149,5 +139,4 @@ class K2KTokenClient(token_client.V3TokenClient):
 
         self.expected_success(201, resp.status)
         scoped_token_id = resp['x-subject-token']
-        #scoped_token_ref = str(body)
         return scoped_token_id

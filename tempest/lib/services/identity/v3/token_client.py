@@ -149,7 +149,6 @@ class V3TokenClient(rest_client.RestClient):
             raise exceptions.IdentityError(
                 'Unexpected status code {0}'.format(resp.status))
 
-        #import pdb; pdb.set_trace()
         if saml:
             return resp, resp_body
         else:    
